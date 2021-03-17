@@ -19,9 +19,16 @@ def get_row_iterator(iterable, options=None):
     which can be used to yield CSV rows."""
     options = options or {}
 
-    quoting = None
-    if 'quoting' in options:
-        quoting = eval(options.get('quoting'))
+    def get_csv_quoting(options):
+        quoting = str(options.get('quoting', "MINIMAL")).upper()
+        quoting_choices = {
+            "NONE": csv.QUOTE_NONE,
+            "MINIMAL": csv.QUOTE_MINIMAL,
+            "ALL": csv.QUOTE_ALL,
+            "NONNUMERIC": csv.QUOTE_NONNUMERIC
+        }
+        assert quoting in quoting_choices, f"Quoting must be in {quoting_choices.keys()}, given: {quoting}"
+        return quoting_choices[quoting]
 
     file_stream = codecs.iterdecode(iterable, encoding='utf-8')
 
@@ -31,7 +38,7 @@ def get_row_iterator(iterable, options=None):
         fieldnames=None, 
         restkey=SDC_EXTRA_COLUMN, 
         delimiter=options.get('delimiter', ','),
-        quoting=quoting or csv.QUOTE_MINIMAL
+        quoting=get_csv_quoting(options)
     )
 
     headers = set(reader.fieldnames)
