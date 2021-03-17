@@ -19,10 +19,20 @@ def get_row_iterator(iterable, options=None):
     which can be used to yield CSV rows."""
     options = options or {}
 
+    quoting = None
+    if 'quoting' in options:
+        quoting = eval(options.get('quoting'))
+
     file_stream = codecs.iterdecode(iterable, encoding='utf-8')
 
     # Replace any NULL bytes in the line given to the DictReader
-    reader = csv.DictReader((line.replace('\0', '') for line in file_stream), fieldnames=None, restkey=SDC_EXTRA_COLUMN, delimiter=options.get('delimiter', ','))
+    reader = csv.DictReader(
+        (line.replace('\0', '') for line in file_stream), 
+        fieldnames=None, 
+        restkey=SDC_EXTRA_COLUMN, 
+        delimiter=options.get('delimiter', ','),
+        quoting=quoting or csv.QUOTE_MINIMAL
+    )
 
     headers = set(reader.fieldnames)
     if options.get('key_properties'):
