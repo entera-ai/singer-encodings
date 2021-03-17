@@ -37,3 +37,34 @@ class TestOptions(unittest.TestCase):
 
         with self.assertRaises(Exception):
             row_iterator = csv.get_row_iterator(self.csv_data, options={'date_overrides': ['fizz']})
+
+class TestTabDelimitedWithQuotesAndMinimalQuoting(unittest.TestCase):
+
+    csv_data = [
+        b'columnA\tcolumnB\tcolumnC', 
+        b'"1\t2\t3',
+        b'1\t2\t3"'
+    ]
+
+    def test(self):
+        options = {'quoting':'MINIMAL', 'delimiter':'\t'}
+        row_iterator = csv.get_row_iterator(self.csv_data, options)
+        rows = [r for r in row_iterator]
+        # if csv.QUOTE_MINIMAL is used, DictReader interprets all lines within quote-pair
+        # as a single line
+        self.assertEqual(len(rows), 1) 
+
+class TestTabDelimitedWithQuotesAndNoneQuoting(unittest.TestCase):
+
+    csv_data = [
+        b'columnA\tcolumnB\tcolumnC', 
+        b'"1\t2\t3',
+        b'1\t2\t3"'
+    ]
+
+    def test(self):
+        options = {'quoting':'NONE', 'delimiter':'\t'}
+        row_iterator = csv.get_row_iterator(self.csv_data, options)
+        rows = [r for r in row_iterator]
+        # if csv.QUOTE_NONE is used, lines spread across quote-pair are parsed individually
+        self.assertEqual(len(rows), 2) 
